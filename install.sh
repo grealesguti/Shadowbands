@@ -18,7 +18,8 @@ sudo apt-get install -y -q \
     i2c-tools \
     git \
     tmux \
-    unzip
+    unzip \
+    chafa
 
 # ── Enable interfaces ─────────────────────────────────────────
 echo "[2/5] Enabling SPI and I2C..."
