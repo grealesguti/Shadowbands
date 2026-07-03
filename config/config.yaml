@@ -1,0 +1,89 @@
+# ─────────────────────────────────────────────────────────────
+# Shadow Band Detector — Configuration
+# Confirmed working on:
+#   Hardware: Pi Zero W, BMP180, DS3231, ADXL335, 2×OPT101
+#             OV5647 IR Camera 3.6mm 1080p
+#   OS:       Raspbian GNU/Linux 13 (Trixie)
+#   User:     eclipse / hostname: eclipse.local
+# ─────────────────────────────────────────────────────────────
+
+hardware:
+  # ── Photodiode array ──────────────────────────────────────
+  n_opt101: 2                    # currently 2, expand to 8 later
+  sensor_spacing_m: 0.05        # measure actual breadboard spacing
+
+  # ── SPI (MCP3208) ─────────────────────────────────────────
+  spi_bus: 0
+  spi_ce_mcp3208_1: 0           # CE0 = GPIO8 (pin 24)
+  spi_ce_mcp3208_2: 1           # CE1 = GPIO7 (pin 26) — future second MCP3208
+  spi_hz: 1000000               # 1 MHz — safe on Pi Zero W
+
+  # ── I²C sensors ───────────────────────────────────────────
+  i2c_bus: 1
+  bmp180_address: 0x77          # BMP180 pressure+temp (no humidity)
+  ds3231_address: 0x68          # DS3231 RTC
+
+  # ── ADXL335 (analog via MCP3208 CH5/6/7) ─────────────────
+  adxl335_ch_x: 5
+  adxl335_ch_y: 6
+  adxl335_ch_z: 7
+  adxl335_vcc: 3.3
+
+  # ── GPIO ──────────────────────────────────────────────────
+  led_sync_gpio: 17             # GPIO17 → 220Ω → LED (camera sync)
+  pps_gpio: 1                   # GPIO1 for GPS 1PPS (future)
+
+  # ── GPS ───────────────────────────────────────────────────
+  gps_available: false          # not yet purchased
+  gps_port: "/dev/ttyAMA0"
+  gps_baud: 9600
+
+  # ── Camera ────────────────────────────────────────────────
+  # OV5647 IR 1080p — CONFIRMED WORKING
+  # Uses rpicam-* commands (NOT libcamera-* on Trixie)
+  camera_available: true
+  camera_cmd: "rpicam"          # rpicam or libcamera
+  camera_width: 1920
+  camera_height: 1080
+  camera_fps: 30
+  camera_suppress_log: true     # adds 2>/dev/null to suppress INFO logs
+
+# ── Calibration ───────────────────────────────────────────────
+calibration:
+  cal_file: "/home/eclipse/shadowband_cal.json"
+  dark_samples: 64
+  uniformity_samples: 64
+  max_sensitivity_deviation_pct: 20.0
+
+# ── Recording ─────────────────────────────────────────────────
+recording:
+  output_dir: "/home/eclipse/data"
+  adc_target_sps: 150           # realistic for Pi Zero W single core
+  atmos_hz: 1
+  write_buffer_kb: 128
+  pre_contact2_s: 180
+  post_contact3_s: 180
+
+# ── Eclipse ───────────────────────────────────────────────────
+eclipse:
+  contact2_utc: "2026-08-12T18:23:45Z"
+  contact3_utc: "2026-08-12T18:27:12Z"
+  location_name: "TBD"
+  latitude:  0.0
+  longitude: 0.0
+  altitude_m: 0
+
+# ── Analysis ──────────────────────────────────────────────────
+analysis:
+  min_band_velocity_ms: 0.5
+  max_band_velocity_ms: 15.0
+  xcorr_max_lag_s: 0.5
+  bandpass_low_hz: 0.1
+  bandpass_high_hz: 5.0
+  min_snr_db: 6.0
+
+# ── Logging ───────────────────────────────────────────────────
+logging:
+  level: "INFO"
+  console: true
+  log_file: "/home/eclipse/data/shadowband.log"
